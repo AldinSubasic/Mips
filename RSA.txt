@@ -1,0 +1,120 @@
+
+# Questo è un programma che dati due numeri primi come input, calcola le coppie
+# (n,e) e (n,d) che sono rispettivamente la chiave pubblica e la chiave 
+# privata per decifrare un messaggio 
+
+
+.data			# memoria ROM
+input: 	.word 5
+	.word 11
+
+chiave_pubblica:	# memoria RAM
+	.space 8
+chiave_privata:
+	.space 8
+
+.text
+main:
+	la $t0, input
+	lw $s0, ($t0)
+	addi $t0, $t0, 4
+	lw $s1, ($t0)
+
+	addi $t0, $s0, -1	# p-1
+	addi $t1, $s1, -1	# q-1
+
+	mul $s0, $s0, $s1	# qui è il prodotto fra i due numeri primi, n
+	mul $s1, $t0, $t1	# in $s1 ho phi(n) = (p-1) * (q-1)
+	
+#ora devo trovare un numero coprimo a phi(n)
+
+	move $s7, $s1		# in $s7 ho la variabile per il numero coprimo
+
+ciclo:
+	move $t2, $s1
+	addi $s7, $s7, -1	# phi(n) - 1, poi decremento di 1 
+	move $t3, $s7
+
+mcd:
+	beq $t3, $zero, check_coprimo 	# quando esco, l'mcd è in $t2
+	div $t2, $t3			# a/b
+	mfhi $t4			# resto della divisione
+	move $t2, $t3			# in a metto b
+	move $t3, $t4			# in b metto il resto
+	j    mcd
+
+check_coprimo:	
+	
+	li $t1, 1
+	bne $t2, $t1, ciclo	# se mcd = 1, vuol dire che il numero in $t0 è coprimo con phi(n)
+	move $s2, $s7		# qui ho "e", l'esponente pubblico
+
+# adesso cerco l'esponente privato d: e*d = 1 (mod(phi(n))
+
+	move $t0, $s1			# phi(n)
+	move $t1, $s2			# e
+	li $t2, 0			# y0
+	li $t3, 1			# y1
+
+loop:
+	beq $t1, $zero, esponente_d 	# esco quando il resto == 0
+	div $t0, $t1			# a/b
+	mfhi $t4			# resto della divisione
+	mflo $t5			# quoziente
+	move $t0, $t1			# in a metto b
+	move $t1, $t4			# in b metto il resto
+
+	mul $t6, $t3, $t5		# y_nuovo * quoziente
+	sub $t6, $t2, $t6		# y_vecchio - y_nuovo * quoziente = d
+
+	move $t2, $t3			# y_vecchio = y_nuovo
+	move $t3, $t6			# y_nuovo = d 
+	
+	j    loop
+
+esponente_d:
+	move $t0, $zero
+	bgt $t2, $t0, carica_esp
+	add $t2, $t2, $s1
+
+carica_esp:
+	beq $t2, $s2, ciclo
+	move $s3, $t2		# in $s3 ho l'esponente privato d
+
+# carico in memoria i risultati
+	la $t0, chiave_pubblica
+	sw $s0, ($t0)		# carico n
+	sw $s2, 4($t0) 		# carico e
+
+	la $t1, chiave_privata
+	sw $s0, ($t1)		# carico n
+	sw $s3, 4($t1)		# carico d
+
+fine: 	j fine
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,34 @@
+.data
+input: .asciiz "mi chiamo giacomino"
+search_char: .asciiz "n"
+
+
+.text
+.globl main
+
+main:
+
+	la $t5, search_char
+	lb $t5, ($t5)		#sto mettendo il carattere "a"
+
+    	# Inizializza i registri
+    	la $s0, input     	# Carica l'indirizzo della stringa di input in $s0
+    	li $s1, 0         	# Inizializza l'indice dell'array a 0
+
+loop:
+    	lb $t0, ($s0)     	# Carica il carattere corrente nella stringa di input
+   
+    	beq $t0, $zero, end     # Se il carattere è zero (terminatore di stringa), vai a "end"
+    
+    				# Confronta il carattere corrente con quello cercato
+    	beq $t0, $t5, found   	# Se il carattere corrente corrisponde a quello cercato, vai a "found"
+    
+    	addi $s0, $s0, 1   	# Incrementa l'indirizzo della stringa di input
+    	
+    	j loop             	# Ripeti il ciclo
+
+found:
+    	j found             	
+
+end:
+    	j end

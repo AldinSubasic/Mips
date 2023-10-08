@@ -1,0 +1,107 @@
+# Dato un numero n restituisce i numeri iper-perfetti nell'intervallo [1,n] 
+
+.data 	
+dati: 	.half 3902
+
+.data 	0x10010200
+ris_intermedi: 
+	.space 512
+
+risultati: 
+	.space 512
+
+
+
+.text
+main:	la 	$s0, dati
+	la      $s1, ris_intermedi	
+        la      $s2, risultati	
+        move    $s3, $s2               
+        lhu     $s0, 0($s0)             # intervallo 
+        beq	$s0, $zero, error               
+
+ciclo: 
+        beq     $s0, $zero, fine      
+        srl     $s5, $s0, 1		# n/2 = divisore
+        move    $s6, $s1                  
+        
+divisori:  
+        slti    $t1, $s5, 1		       
+        bne     $t1, $zero, check_Iper  
+        div	$s0, $s5                # n/(divisore)
+        mfhi	$t0		        # resto 
+        beq	$t0, $zero, agg	 
+        addi    $s5, $s5, -1             
+        j divisori
+
+agg:        
+        sh	$s5, 0($s6)		        
+        addu    $s4, $s5, $s4           # incrementa somma dei divisori
+        addi    $s5, $s5, -1            # divisore - 1
+        addi    $s7, $s7, 1             # contatore divisori
+        addiu   $s6, $s6, 2             # incrementa cella puntata
+        j divisori 
+
+check_Iper:
+	addi	$s4, $s4, -1		# tolgo 1 dal conteggio
+	slti	$t9, $s4, 1
+	bne 	$t9, $zero, non_ok	# siamo arrivati a 1 o è un numero primo
+	addi	$t1, $zero, 1		# imposto k = 1
+
+ciclo_Iper:
+	mul	$t2, $s4, $t1		# k*(somma divisori)
+	addi	$t8, $t2, 1		# k*(somma divisori) + 1
+	beq 	$t8, $s0, ok		# se corrispondono -> è iper perfetto
+	addi	$t1, $t1, 1		# incrementa k
+	slt	$t4, $t8, $s0
+	bne	$t4, $zero, ciclo_Iper  # se $t8 minore di $s0, non ho sforato
+	j	non_ok
+
+non_ok:
+	addi 	$s0, $s0, -1
+	j	clear
+
+ok:
+	sh 	$s0, 0($s3)		# salvo il numero Iper-perfetto in memoria
+	addi 	$t3, $t3, 2		
+	addu 	$s3, $s2, $t3		# incremento puntatore
+	addi 	$s0, $s0, -1		# decremento il numero
+	j	clear
+
+clear:
+	move 	$t1, $zero
+	move 	$t2, $s1
+ciclo_clear:
+	slt     $t0, $t1, $s7        
+        beq     $t0, $zero, end_ciclo_clear
+        sh      $zero, 0($t2)
+	addiu   $t2, $t2, 2
+        addiu   $t1, $t1, 1 
+        j 	ciclo_clear
+
+end_ciclo_clear: 
+        j 	reset_registers
+
+error: 
+	j 	error
+
+fine:
+	j 	fine
+
+reset_registers:
+	move	$s4, $zero
+	move	$s7, $zero
+	j 	ciclo
+
+
+
+
+# legenda:
+# $s0 indirizzo dei dati nella memoria ROM e poi carico il numero con cui lavorare
+# $s1 indirizzo dei risultati intermedi in memoria RAM
+# $s2 indirizzo dei risultati in memoria RAM
+# $s3 puntatore mobile dei risultati
+# $s4 somma dei divisori
+# $s5 divisore corrente
+# $s6 come puntatore mobile dei risultati intermedi
+# $s7 contatore dei divisori

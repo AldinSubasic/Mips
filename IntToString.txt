@@ -1,0 +1,43 @@
+.data
+numero:		.word 253
+stringa:	.space 8
+
+.text
+main:
+	la $t0, numero
+	lw $t0, ($t0)
+	move $t2, $zero
+#leggo il numero carattere per carattere
+loop:
+	div $t0, $t0, 10
+	mfhi $t1
+	mul $t2, $t2, 10
+	add $t2, $t2, $t1 	# in $t2 ho il numero specchiato
+	bne $t0, $zero, loop
+# ciclo per salvare in memoria il numero come stringa
+	
+	la $t0, stringa
+
+loop_scrittura:
+	div $t2, $t2, 10
+	mfhi $t1
+	addi $t1, $t1, 48
+	sb $t1, ($t0)
+	addi $t0, $t0, 1
+	bne $t2, $zero, loop_scrittura
+	li $t3, 0
+	sb $t3, ($t0)
+fine: 	j fine
+
+
+
+
+
+
+
+
+
+
+
+
+

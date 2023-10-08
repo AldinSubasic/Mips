@@ -1,0 +1,54 @@
+.data
+array_delle_x:  .float 5.3, 1.0, 3.7
+array_delle_y:  .float 4.2, 2.9, 1.8
+array_dei_pesi: .float 2.5, 5.0, 6.4
+
+risultato: .space 8
+
+.text
+main:
+	la $s0, array_delle_x
+	la $s1, array_delle_y
+	la $s2, array_dei_pesi
+	addi $t0, $t0, 3
+	la $s3, risultato
+
+#faccio la sommatoria pesata per le x e le y e somma dei pesi
+somma_pesata:
+	lwc1 $f0, ($s0)		#contiene gli elementi delle x
+	lwc1 $f1, ($s1)		#contiene gli elementi delle y
+	lwc1 $f2, ($s2)		#contiene gli elementi dei pesi
+
+	mul.s $f3, $f0, $f2	#mul x per il proprio peso
+	mul.s $f4, $f1, $f2	#mul y per il proprio peso
+
+	add.s $f5, $f5, $f2	#sommatoria dei pesi
+	add.s $f6, $f6, $f3	#somma pesata delle x
+	add.s $f7, $f7, $f4	#somma pesata delle y
+	
+	addi $t0, $t0, -1	#decremento il contatore
+	addi $s0, $s0, 4	#punto all'elemento successivo
+	addi $s1, $s1, 4	#punto all'elemento successivo
+	addi $s2, $s2, 4	#punto all'elemento successivo
+
+	bne $t0, $zero, somma_pesata
+
+	div.s $f3, $f6, $f5 	#divido somma pesata delle x per i pesi
+	div.s $f4, $f7, $f5 	#divido somma pesata delle y per i pesi
+
+	swc1 $f3, 0($s3)	#salvo in memoria il risultato
+	swc1 $f4, 4($s3)	#salvo in memoria il risultato
+
+
+
+
+
+
+
+
+
+
+
+
+
+

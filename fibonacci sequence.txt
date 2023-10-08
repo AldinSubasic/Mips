@@ -1,0 +1,40 @@
+	.data
+fib0: .word 0          # primo valore della sequenza (0)
+fib1: .word 1          # secondo valore della sequenza (1)
+fib_result: .word 0    # variabile per il risultato
+
+	.space   10
+
+	.text
+# Main program
+#$t0 contiene il primo numero di fibonacci da sommare
+#$t1 contiene il secondo numero di fibonacci da sommare
+#$t2 è l'n-esimo numero di fibonacci da generare
+#$t3 è il contatore 
+#$t4 contiene le somme parziali
+#$t5 è il puntatore a fib_result dove viene salvato il risultato
+
+    la $t0, fib0    # carica l'indirizzo di fib0 in $t0
+    lw $t0, ($t0)   # carica il valore di fib0 in $t0
+    la $t1, fib1    # carica l'indirizzo di fib1 in $t1
+    lw $t1, ($t1)   # carica il valore di fib1 in $t1
+    
+    li $t2, 25      # imposta l'n-esimo numero della sequenza da generare
+    
+    addi $t3, $zero, 2  # imposta il contatore a 2
+    
+    # inizio del ciclo per generare la sequenza
+    ciclo:
+        add $t4, $t0, $t1      # calcola la somma di fib0 e fib1
+        la $t5, fib_result     # carica l'indirizzo di fib_result in $t5
+        sw $t4, ($t5)  		 # salva il risultato in fib_result
+        
+        addi $t0, $t1, 0       # assegna a fib0 il valore di fib1
+        addi $t1, $t4, 0       # assegna a fib1 il valore di fib_result
+        
+        addi $t3, $t3, 1       # incrementa il contatore
+        
+        bne $t3, $t2, ciclo    # se il contatore non è arrivato al n-esimo elemento della sequenza, torna all'inizio del ciclo
+        
+    # fine del programma
+    fine: 	j 	fine

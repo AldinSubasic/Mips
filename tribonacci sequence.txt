@@ -1,0 +1,45 @@
+	.data
+trib0: .word 0      # primo valore della sequenza (0)
+trib1: .word 0      # secondo valore della sequenza (0)
+trib2: .word 1      # terzo valore della sequenza (1)
+trib_result: .word 0    # variabile per salvare il risultato
+
+	.text
+#Main program
+#$t0 contiene il primo numero di fibonacci da sommare
+#$t1 contiene il secondo numero di fibonacci da sommare
+#$t2 contiene il terzo numero di fibonacci da sommare
+#$t3 è l'n-esimo numero di fibonacci da generare
+#$t4 è il contatore 
+#$t5 contiene le somme parziali
+#$t6 è il puntatore a fib_result dove viene salvato il risultato
+
+    la $t0, trib0    # carica l'indirizzo di trib0 in $t0
+    lw $t0, ($t0)    # carica il valore di trib0 in $t0
+    la $t1, trib1    # carica l'indirizzo di trib1 in $t1
+    lw $t1, ($t1)    # carica il valore di trib1 in $t1
+    la $t2, trib2    # carica l'indirizzo di trib2 in $t2
+    lw $t2, ($t2)    # carica il valore di trib2 in $t2
+    
+    li $t3, 10       # imposta l'n-esimo numero della sequenza da generare
+    
+    addi $t4, $zero, 3  # imposta il contatore a 3
+    
+    # inizio del ciclo per generare la sequenza
+    ciclo:
+        add $t5, $t0, $t1     # calcola la somma dei primi due elementi
+        add $t5, $t5, $t2     # aggiunge il terzo elemento
+        
+        la $t6, trib_result   # carica l'indirizzo di trib_result in $t6
+        sw $t5, ($t6)         # salva il risultato in trib_result
+        
+        addi $t0, $t1, 0      # assegna a trib0 il valore di trib1
+        addi $t1, $t2, 0      # assegna a trib1 il valore di trib2
+        addi $t2, $t5, 0      # assegna a trib2 il valore di trib_result
+        
+        addi $t4, $t4, 1      # incrementa il contatore
+        
+        bne $t4, $t3, ciclo   # se il contatore non è arrivato al n-esimo elemento della sequenza, torna all'inizio del ciclo
+        
+    # fine del programma
+   fine:	j 	fine

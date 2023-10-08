@@ -1,0 +1,65 @@
+#Si chiamano “numeri di Jacobsthal” i numeri ottenuti dalla ricorrenza 
+#J(n) = J(n–1) + 2J(n–2), con le condizioni iniziali J(0)=0, J(1)=1.	
+
+
+# $t0 è il counter per arrivare al n-esimo numero
+# $t1 contiene J(n-2)
+# $t2 contiene J(n-1)
+# $t3 contiene le somme cumulative e alla fine del ciclo conterrà J(n)
+# l'etichetta n è l'indirizzo da dove prelevo il valore di n
+# l'etichetta result è dove salvo J(n)
+
+	.data
+n: 	  .word 10       # Valore di n
+result: .word  0       # Variabile per salvare il risultato
+
+
+.text
+main: # Carica il valore di n nella registro $t0
+      la $t0, n
+      lw $t0, ($t0)
+    
+      # Inizializza le variabili di Jacobsthal
+      li $t1, 0   # J(0)
+      li $t2, 1   # J(1)
+    
+      # Chiama la funzione per calcolare l'n-esimo numero di Jacobsthal
+      jal jacobsthal
+    
+      # Salva il risultato nella variabile "result"
+      sw $t1, result
+
+      # Fine del programma
+fine: j fine
+
+
+# Funzione per calcolare l'n-esimo numero di Jacobsthal
+jacobsthal:  # caso base: J(0) = 0 e J(1) = 1
+             beq $t0, $zero, end
+             beq $t0, 1, CasoBase
+    
+
+         # Calcola l'n-esimo numero di jacobsthal
+    
+loop:    add  $t3, $t1, $t2       # Calcola J(n) = J(n-1) + 2 * J(n-2)
+         move $t1, $t2            # Sposta J(n-1) in J(n-2)
+	   sll  $t1, $t1, 1    	    # Moltiplico J(n-2) per due
+         move $t2, $t3            # Sposta J(n) in J(n-1)
+         addi $t0, $t0, -1        # Decrementa il valore di n
+         bne  $t0, 1, loop
+    
+end:    jr $ra  #ritorna al chiamante
+
+CasoBase: sw $t2, result
+	    j fine
+
+
+#t1 è J(n-2)
+#t2 è J(n-1)
+
+
+
+
+
+
+

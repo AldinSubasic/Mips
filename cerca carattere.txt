@@ -1,0 +1,143 @@
+.data   #ROM
+dati: 			.asciiz "Benvenuti al programma di Calcolatori Elettronici"
+carattere:		.byte 'e'
+
+.data 0x10010500   #RAM
+num_caratteri:
+.space 4
+
+indici:
+.space 256
+
+float_space:
+.space 12
+
+space_calcoli:
+.space 256
+
+.text
+.globl_main:
+main:
+	la $s0, dati				#indirizzo base della stringa
+	la $s1, carattere
+	lbu $s1, ($s1)				# contiene il carattere che cerco
+	li $s2, 0x00000060			# mascheratura
+	la $s3, indici				# indirizzo base dove scrivere indici
+	li $t0, 0					# contatore per spostarmi sulla stringa
+	li $s4, 0					# conteggio delle lettere
+	li $s5, 0					# conteggio della lettera cercata
+	li $s6, 0x20
+	li $t5, 0
+	li $t6, 0
+	la $s7, space_calcoli
+	
+
+ciclo_lettura:
+	addu $t1, $s0, $t0
+	lbu $t1, ($t1)				# carattere corrente
+	beq $t1, $zero, fine_lettura
+
+	add $t5, $t5, $t1
+	beq $t1, $s6, salva_conteggio
+
+continua:
+	move $a0, $t1				# controllo che sia un carattere accettabile
+
+	addi $sp, $sp, -5			# push and pop prima di saltare al controllo
+	sw $t0, 1($sp)
+	sb $t1, ($sp)
+	jal check_char
+	lb $t1, ($sp)
+	lw $t0, 1($sp)
+	addi $sp, $sp, 5
+
+	bne $v0, $zero, confronto	# se $v1=1 è un carattere accettabile
+	addi $t0, $t0, 1
+	j ciclo_lettura
+
+confronto:
+	addi $s4, $s4, 1			# incremento contatore caratteri letti
+	srl $t3, $t1, 5				# controllo se è maiuscolo
+	andi $t2, $t3, 0x00000001	# controllo solo il sesto bit, se è 1 -> è minuscolo, altrimenti maiuscolo
+	bne $t2, $zero, minuscolo
+	or $t1, $t1, $s2 			# mascheratura per renderlo minuscolo
+
+minuscolo:
+	beq $t1, $s1, carica_indice	# se corrisponde al carattere cercato, salto a carica_indice
+	addi $t0, $t0, 1
+	j ciclo_lettura
+
+carica_indice:
+	sb $t0, ($s3)				# salvo l'indice del carattere trovato
+	addi $s5, $s5, 1			# incremento il counter del carattere cercato
+	addi $s3, $s3, 1			# incremento l'indirizzo in memoria dove salvare gli indici
+	addi $t0, $t0, 1				# incremento il puntatore
+	j ciclo_lettura
+
+fine_lettura:
+	la $s2, num_caratteri
+	sw $s5, ($s2)			# carico il numero di lettere cercate e trovate
+	
+	li $t3, 100				# costante 100 per fare la percentuale
+	
+	la $s6, float_space		# carico l'indirizzo dove utilizzare i numeri in virgola mobile
+	sw $s4, ($s6)			# carico il numero di caratteri totali
+	sw $s5, 4($s6)		# carico il numero delle occorrenze del carattere che cercato
+
+	lwc1 $f1, ($s6)
+	cvt.s.w $f2, $f1		# carico e converto il numero tot di caratteri
+
+	lwc1 $f3, 4($s6)
+	cvt.s.w $f4, $f3		# carico e converto il numero delle occorrenze del carattere cercato
+
+	sw $t3, 8($s6)			
+	lwc1 $f7, 8($s6)
+	cvt.s.w $f8, $f7		# carico e converto la costante 100
+
+	div.s $f5, $f4, $f2		# divido occorrenze carattere e numero tot di caratteri
+	mul.s $f5, $f5, $f8		# moltiplico per 100
+
+	cvt.w.s $f6, $f5
+	swc1 $f6, 8($s6)		# converto e carico in memoria 
+	lw $t7, 8($s6)			# scrivo in $t7 la percentuale in decimale 
+
+fine: j fine
+
+
+
+check_char:
+	
+	slti $t0, $a0, 0x41			# arg. < A ?
+	bne $t0, $zero, not_ok		
+	slti $t0, $a0, 0x7a			# arg. > z ?	
+	beq $t0, $zero, not_ok
+
+	li $t1, 0x5a				# 0x5a = Z
+	slti $t2, $a0, 0x61			# arg. < a ?
+	slt $t3, $t1, $a0			# arg. > Z ?
+	and $t4, $t2, $t3		
+	bne $t4, $zero, not_ok 		# se entrambe condizioni vere, non è accettabile
+
+	li $v0, 1					# carattere accettabile
+	jr $ra
+
+
+not_ok:
+	li $v0, 0					# carattere non accettabile 
+	jr $ra
+
+salva_conteggio:
+	addiu $s7, $s7, 4
+	sw $t5, ($s7)
+	li $t5, 0
+	j continua
+	
+
+
+
+
+
+
+
+
+

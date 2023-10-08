@@ -1,0 +1,14 @@
+.text
+main:
+	li $t0, 5
+	li $t1, 4294967294
+	nor $t3, $t1, $zero
+	sltu $t3, $t3, $t0
+
+	bne $t3, $zero, riporto
+	addu $t2, $t0, $t1
+	j fine
+
+
+riporto: li $t2, 1
+fine:	j fine
